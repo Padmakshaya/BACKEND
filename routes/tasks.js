@@ -1,48 +1,55 @@
 const express = require("express");
 const router = express.Router();
 
-// Temporary in-memory data
-let tasks = [
-  { id: 1, title: "Create Dashboard", status: "pending" },
-  { id: 2, title: "Build Backend", status: "completed" }
-];
+// Temporary data (no database)
+let tasks = [];
 
-// ✅ GET all tasks
+// GET all tasks
 router.get("/", (req, res) => {
   res.json(tasks);
 });
 
-// ✅ POST create new task
+// POST new task
 router.post("/", (req, res) => {
+  const { title, status } = req.body;
+
+  if (!title || !status) {
+    return res.status(400).json({ message: "Missing fields" });
+  }
+
   const newTask = {
-    id: tasks.length + 1,
-    title: req.body.title,
-    status: req.body.status
+    id: Date.now(),
+    title,
+    status,
   };
+
   tasks.push(newTask);
   res.status(201).json(newTask);
 });
 
-// ✅ PUT update task
+// PUT update task
 router.put("/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const task = tasks.find(t => t.id === id);
+  const taskId = parseInt(req.params.id);
+  const { title, status } = req.body;
+
+  const task = tasks.find(t => t.id === taskId);
 
   if (!task) {
     return res.status(404).json({ message: "Task not found" });
   }
 
-  task.title = req.body.title;
-  task.status = req.body.status;
+  task.title = title;
+  task.status = status;
 
   res.json(task);
 });
 
-// ✅ DELETE task
+// DELETE task
 router.delete("/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  tasks = tasks.filter(t => t.id !== id);
-  res.json({ message: "Task deleted successfully" });
+  const taskId = parseInt(req.params.id);
+  tasks = tasks.filter(t => t.id !== taskId);
+
+  res.json({ message: "Task deleted" });
 });
 
 module.exports = router;
